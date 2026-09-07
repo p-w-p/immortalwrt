@@ -42,6 +42,24 @@ endef
 $(eval $(call KernelPackage,atmtcp))
 
 
+define KernelPackage/appletalk
+  SUBMENU:=$(NETWORK_SUPPORT_MENU)
+  TITLE:=Appletalk protocol support
+  KCONFIG:= \
+        CONFIG_ATALK \
+        CONFIG_DEV_APPLETALK \
+        CONFIG_IPDDP=n
+  FILES:=$(LINUX_DIR)/net/appletalk/appletalk.ko
+  AUTOLOAD:=$(call AutoLoad,40,appletalk)
+endef
+
+define KernelPackage/appletalk/description
+  Kernel module for AppleTalk protocol.
+endef
+
+$(eval $(call KernelPackage,appletalk))
+
+
 define KernelPackage/bonding
   SUBMENU:=$(NETWORK_SUPPORT_MENU)
   TITLE:=Ethernet bonding driver
@@ -539,7 +557,6 @@ define KernelPackage/slhc
   SUBMENU:=$(NETWORK_SUPPORT_MENU)
   HIDDEN:=1
   TITLE:=Serial Line Header Compression
-  DEPENDS:=+kmod-lib-crc-ccitt
   KCONFIG:=CONFIG_SLHC
   FILES:=$(LINUX_DIR)/drivers/net/slip/slhc.ko
 endef
@@ -587,7 +604,7 @@ define KernelPackage/pppox
   SUBMENU:=$(NETWORK_SUPPORT_MENU)
   TITLE:=PPPoX helper
   DEPENDS:=kmod-ppp
-  KCONFIG:=CONFIG_PPPOE
+  HIDDEN:=1
   FILES:=$(LINUX_DIR)/drivers/net/ppp/pppox.ko
 endef
 
@@ -677,10 +694,8 @@ $(eval $(call KernelPackage,ipoa))
 define KernelPackage/mppe
   SUBMENU:=$(NETWORK_SUPPORT_MENU)
   TITLE:=Microsoft PPP compression/encryption
-  DEPENDS:=kmod-ppp +kmod-crypto-arc4 +kmod-crypto-sha1 +kmod-crypto-ecb
-  KCONFIG:= \
-	CONFIG_PPP_MPPE_MPPC \
-	CONFIG_PPP_MPPE
+  DEPENDS:=kmod-ppp +kmod-crypto-sha1
+  KCONFIG:=CONFIG_PPP_MPPE
   FILES:=$(LINUX_DIR)/drivers/net/ppp/ppp_mppe.ko
   AUTOLOAD:=$(call AutoProbe,ppp_mppe)
 endef
@@ -760,22 +775,6 @@ endef
 $(eval $(call KernelPackage,sched-act-sample))
 
 
-define KernelPackage/sched-act-ipt
-  SUBMENU:=$(NETWORK_SUPPORT_MENU)
-  TITLE:=IPtables targets
-  DEPENDS:=+kmod-ipt-core +kmod-sched-core
-  KCONFIG:=CONFIG_NET_ACT_IPT
-  FILES:=$(LINUX_DIR)/net/sched/act_ipt.ko
-  AUTOLOAD:=$(call AutoProbe, act_ipt)
-endef
-
-define KernelPackage/sched-act-ipt/description
-  Allows to invoke iptables targets after successful classification.
-endef
-
-$(eval $(call KernelPackage,sched-act-ipt))
-
-
 define KernelPackage/sched-act-vlan
   SUBMENU:=$(NETWORK_SUPPORT_MENU)
   TITLE:=Traffic VLAN manipulation
@@ -826,7 +825,7 @@ $(eval $(call KernelPackage,sched-cake))
 define KernelPackage/sched-connmark
   SUBMENU:=$(NETWORK_SUPPORT_MENU)
   TITLE:=Traffic shaper conntrack mark support
-  DEPENDS:=+kmod-sched-core +kmod-ipt-core +kmod-ipt-conntrack-extra
+  DEPENDS:=+kmod-sched-core +kmod-nf-conntrack
   KCONFIG:=CONFIG_NET_ACT_CONNMARK
   FILES:=$(LINUX_DIR)/net/sched/act_connmark.ko
   AUTOLOAD:=$(call AutoLoad,71, act_connmark)
@@ -837,7 +836,7 @@ $(eval $(call KernelPackage,sched-connmark))
 define KernelPackage/sched-ctinfo
   SUBMENU:=$(NETWORK_SUPPORT_MENU)
   TITLE:=Traffic shaper ctinfo support
-  DEPENDS:=+kmod-sched-core +kmod-ipt-core +kmod-ipt-conntrack-extra
+  DEPENDS:=+kmod-sched-core +kmod-nf-conntrack
   KCONFIG:=CONFIG_NET_ACT_CTINFO
   FILES:=$(LINUX_DIR)/net/sched/act_ctinfo.ko
   AUTOLOAD:=$(call AutoLoad,71, act_ctinfo)
@@ -910,7 +909,6 @@ $(eval $(call KernelPackage,sched-ipset))
 define KernelPackage/sched-mqprio-common
   SUBMENU:=$(NETWORK_SUPPORT_MENU)
   TITLE:=mqprio queue common dependencies support
-  DEPENDS:=@LINUX_6_6
   HIDDEN:=1
   KCONFIG:=CONFIG_NET_SCH_MQPRIO_LIB
   FILES:=$(LINUX_DIR)/net/sched/sch_mqprio_lib.ko
@@ -926,7 +924,7 @@ $(eval $(call KernelPackage,sched-mqprio-common))
 define KernelPackage/sched-mqprio
   SUBMENU:=$(NETWORK_SUPPORT_MENU)
   TITLE:=Multi-queue priority scheduler (MQPRIO)
-  DEPENDS:=+kmod-sched-core +LINUX_6_6:kmod-sched-mqprio-common
+  DEPENDS:=+kmod-sched-core +kmod-sched-mqprio-common
   KCONFIG:=CONFIG_NET_SCH_MQPRIO
   FILES:=$(LINUX_DIR)/net/sched/sch_mqprio.ko
   AUTOLOAD:=$(call AutoProbe, sch_mqprio)
@@ -1009,13 +1007,13 @@ endef
 $(eval $(call KernelPackage,bpf-test))
 
 
-SCHED_MODULES_EXTRA = sch_codel sch_gred sch_multiq sch_sfq sch_teql sch_fq act_pedit act_simple act_skbmod act_csum em_cmp em_nbyte em_meta em_text
+SCHED_MODULES_EXTRA = sch_codel sch_gred sch_multiq sch_sfq sch_teql sch_fq sch_ets act_pedit act_simple act_skbmod act_csum em_cmp em_nbyte em_meta em_text
 SCHED_FILES_EXTRA = $(foreach mod,$(SCHED_MODULES_EXTRA),$(LINUX_DIR)/net/sched/$(mod).ko)
 
 define KernelPackage/sched
   SUBMENU:=$(NETWORK_SUPPORT_MENU)
   TITLE:=Extra traffic schedulers
-  DEPENDS:=+kmod-sched-core +kmod-lib-crc32c +kmod-lib-textsearch
+  DEPENDS:=+kmod-sched-core +LINUX_6_12:kmod-lib-crc32c +kmod-lib-textsearch
   KCONFIG:= \
 	CONFIG_NET_SCH_CODEL \
 	CONFIG_NET_SCH_GRED \
@@ -1023,6 +1021,7 @@ define KernelPackage/sched
 	CONFIG_NET_SCH_SFQ \
 	CONFIG_NET_SCH_TEQL \
 	CONFIG_NET_SCH_FQ \
+	CONFIG_NET_SCH_ETS \
 	CONFIG_NET_ACT_PEDIT \
 	CONFIG_NET_ACT_SIMP \
 	CONFIG_NET_ACT_SKBMOD \
@@ -1127,27 +1126,6 @@ endef
 $(eval $(call KernelPackage,tcp-scalable))
 
 
-define KernelPackage/ax25
-  SUBMENU:=$(NETWORK_SUPPORT_MENU)
-  TITLE:=AX25 support
-  DEPENDS:=+kmod-lib-crc16
-  KCONFIG:= \
-	CONFIG_HAMRADIO=y \
-	CONFIG_AX25 \
-	CONFIG_MKISS
-  FILES:= \
-	$(LINUX_DIR)/net/ax25/ax25.ko \
-	$(LINUX_DIR)/drivers/net/hamradio/mkiss.ko
-  AUTOLOAD:=$(call AutoLoad,80,ax25 mkiss)
-endef
-
-define KernelPackage/ax25/description
- Kernel modules for AX25 support
-endef
-
-$(eval $(call KernelPackage,ax25))
-
-
 define KernelPackage/pktgen
   SUBMENU:=$(NETWORK_SUPPORT_MENU)
   DEPENDS:=@!TARGET_uml
@@ -1231,10 +1209,11 @@ define KernelPackage/sctp
      CONFIG_SCTP_COOKIE_HMAC_MD5=y \
      CONFIG_SCTP_DEFAULT_COOKIE_HMAC_NONE=n \
      CONFIG_SCTP_DEFAULT_COOKIE_HMAC_SHA1=n \
+     CONFIG_SCTP_DEFAULT_COOKIE_HMAC_SHA256=n@ge6.18 \
      CONFIG_SCTP_DEFAULT_COOKIE_HMAC_MD5=y
   FILES:= $(LINUX_DIR)/net/sctp/sctp.ko
   AUTOLOAD:= $(call AutoLoad,32,sctp)
-  DEPENDS:=+kmod-lib-crc32c +kmod-crypto-md5 +kmod-crypto-hmac \
+  DEPENDS:=+LINUX_6_12:kmod-lib-crc32c +kmod-crypto-md5 +kmod-crypto-hmac \
     +kmod-udptunnel4 +kmod-udptunnel6
 endef
 
@@ -1358,10 +1337,11 @@ $(eval $(call KernelPackage,mpls))
 define KernelPackage/9pnet
   SUBMENU:=$(NETWORK_SUPPORT_MENU)
   TITLE:=Plan 9 Resource Sharing Support (9P2000)
+  DEPENDS:=+kmod-fs-netfs
   KCONFIG:= \
 	CONFIG_NET_9P \
 	CONFIG_NET_9P_DEBUG=n \
-	CONFIG_NET_9P_FD=n@ge5.17
+	CONFIG_NET_9P_FD=n
   FILES:= \
 	$(LINUX_DIR)/net/9p/9pnet.ko
   AUTOLOAD:=$(call AutoLoad,29,9pnet)
@@ -1495,6 +1475,23 @@ endef
 $(eval $(call KernelPackage,inet-diag))
 
 
+define KernelPackage/inet-mptcp-diag
+  SUBMENU:=$(NETWORK_SUPPORT_MENU)
+  TITLE:=INET diag support for MultiPath TCP
+  DEPENDS:=@KERNEL_MPTCP +kmod-inet-diag
+  KCONFIG:=CONFIG_INET_MPTCP_DIAG
+  FILES:=$(LINUX_DIR)/net/mptcp/mptcp_diag.ko
+  AUTOLOAD:=$(call AutoProbe,mptcp_diag)
+endef
+
+define KernelPackage/inet-mptcp-diag/description
+Support for INET (MultiPath TCP) socket monitoring interface used by
+native Linux tools such as ss.
+endef
+
+$(eval $(call KernelPackage,inet-mptcp-diag))
+
+
 define KernelPackage/xdp-sockets-diag
   SUBMENU:=$(NETWORK_SUPPORT_MENU)
   TITLE:=PF_XDP sockets monitoring interface support for ss utility
@@ -1614,3 +1611,88 @@ define KernelPackage/qrtr-mhi/description
 endef
 
 $(eval $(call KernelPackage,qrtr-mhi))
+
+define KernelPackage/unix-diag
+  SUBMENU:=$(NETWORK_SUPPORT_MENU)
+  TITLE:=UNIX socket monitoring interface
+  KCONFIG:=CONFIG_UNIX_DIAG
+  FILES:= $(LINUX_DIR)/net/unix/unix_diag.ko
+  AUTOLOAD:=$(call AutoProbe,unix_diag)
+endef
+
+$(eval $(call KernelPackage,unix-diag))
+
+define KernelPackage/packet-diag
+  SUBMENU:=$(NETWORK_SUPPORT_MENU)
+  TITLE:=Packet sockets monitoring interface
+  KCONFIG:=CONFIG_PACKET_DIAG
+  FILES:= $(LINUX_DIR)/net/packet/af_packet_diag.ko
+  AUTOLOAD:=$(call AutoProbe,af_packet_diag)
+endef
+
+$(eval $(call KernelPackage,packet-diag))
+
+define KernelPackage/team
+  SUBMENU:=$(NETWORK_SUPPORT_MENU)
+  TITLE:=Ethernet team driver
+  KCONFIG:=CONFIG_NET_TEAM
+  FILES:=$(LINUX_DIR)/drivers/net/team/team.ko
+  AUTOLOAD:=$(call AutoProbe,team)
+endef
+
+$(eval $(call KernelPackage,team))
+
+define KernelPackage/team-mode-broadcast
+  SUBMENU:=$(NETWORK_SUPPORT_MENU)
+  TITLE:=Broadcast mode support
+  DEPENDS:=kmod-team
+  KCONFIG:=CONFIG_NET_TEAM_MODE_BROADCAST
+  FILES:=$(LINUX_DIR)/drivers/net/team/team_mode_broadcast.ko
+  AUTOLOAD:=$(call AutoProbe,team_mode_broadcast)
+endef
+
+$(eval $(call KernelPackage,team-mode-broadcast))
+
+define KernelPackage/team-mode-roundrobin
+  SUBMENU:=$(NETWORK_SUPPORT_MENU)
+  TITLE:=Round-robin mode support
+  DEPENDS:=kmod-team
+  KCONFIG:=CONFIG_NET_TEAM_MODE_ROUNDROBIN
+  FILES:=$(LINUX_DIR)/drivers/net/team/team_mode_roundrobin.ko
+  AUTOLOAD:=$(call AutoProbe,team_mode_roundrobin)
+endef
+
+$(eval $(call KernelPackage,team-mode-roundrobin))
+
+define KernelPackage/team-mode-random
+  SUBMENU:=$(NETWORK_SUPPORT_MENU)
+  TITLE:=Random mode support
+  DEPENDS:=kmod-team
+  KCONFIG:=CONFIG_NET_TEAM_MODE_RANDOM
+  FILES:=$(LINUX_DIR)/drivers/net/team/team_mode_random.ko
+  AUTOLOAD:=$(call AutoProbe,team_mode_random)
+endef
+
+$(eval $(call KernelPackage,team-mode-random))
+
+define KernelPackage/team-mode-activebackup
+  SUBMENU:=$(NETWORK_SUPPORT_MENU)
+  TITLE:=Active-backup mode support
+  DEPENDS:=kmod-team
+  KCONFIG:=CONFIG_NET_TEAM_MODE_ACTIVEBACKUP
+  FILES:=$(LINUX_DIR)/drivers/net/team/team_mode_activebackup.ko
+  AUTOLOAD:=$(call AutoProbe,team_mode_activebackup)
+endef
+
+$(eval $(call KernelPackage,team-mode-activebackup))
+
+define KernelPackage/team-mode-loadbalance
+  SUBMENU:=$(NETWORK_SUPPORT_MENU)
+  TITLE:=Load-balance mode support
+  DEPENDS:=kmod-team
+  KCONFIG:=CONFIG_NET_TEAM_MODE_LOADBALANCE
+  FILES:=$(LINUX_DIR)/drivers/net/team/team_mode_loadbalance.ko
+  AUTOLOAD:=$(call AutoProbe,team_mode_loadbalance)
+endef
+
+$(eval $(call KernelPackage,team-mode-loadbalance))

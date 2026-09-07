@@ -8,13 +8,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=tfa-layerscape
-PKG_VERSION:=6.6.3.1.0.0
+PKG_VERSION:=6.18.2.1.0.0
 PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/nxp-qoriq/atf
-PKG_SOURCE_VERSION:=lf-6.6.3-1.0.0
-PKG_MIRROR_HASH:=28b731c1c4cc3226ccaef2142c61127f213c03cbd219df556c1d191e95f8470c
+PKG_SOURCE_VERSION:=lf-6.18.2-1.0.0
+PKG_MIRROR_HASH:=4baa079cdc794bd6095c4d5cecb64d38d94273d592ad6d84da955cff3d443393
 PKG_BUILD_DEPENDS:=tfa-layerscape/host
 
 include $(INCLUDE_DIR)/host-build.mk
@@ -25,7 +25,7 @@ HOST_CFLAGS += -Wall -Werror -pedantic -std=c99
 define Host/Compile
 	$(MAKE) -C \
 		$(HOST_BUILD_DIR)/tools/fiptool \
-		PLAT_FIPTOOL_HELPER_MK="$(HOST_BUILD_DIR)/tools/nxp/plat_fiptool/plat_fiptool.mk" \
+		PLAT_FIPTOOL_HELPER_MK="$(HOST_BUILD_DIR)/tools/fiptool/plat_fiptool/nxp/plat_fiptool.mk" \
 		CFLAGS="$(HOST_CFLAGS)" \
 		LDFLAGS="$(HOST_LDFLAGS)" \
 		HOSTCCFLAGS="$(HOST_CFLAGS)"
@@ -43,6 +43,7 @@ endef
 define Trusted-Firmware-A/Default
   BUILD_TARGET:=layerscape
   BUILD_SUBTARGET:=armv8_64b
+  BUILD_DEVICES:=fsl_$(1)
   DEPENDS:=+layerscape-rcw +u-boot-fsl_$(1)
 endef
 
@@ -161,6 +162,7 @@ TFA_TARGETS := \
   lx2160a-rdb-sdboot
 
 TFA_MAKE_FLAGS += \
+	LDFLAGS="-Wl,--no-warn-rwx-segments" \
 	fip pbl \
 	BOOT_MODE=$(BOOT_MODE) \
 	RCW=$(STAGING_DIR_IMAGE)/fsl_$(BUILD_VARIANT)-rcw.bin \

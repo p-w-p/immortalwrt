@@ -75,25 +75,10 @@ endif
 
 _ignore = $(foreach p,$(IGNORE_PACKAGES),--ignore $(p))
 
-# Config that will invalidate the .targetinfo as they will affect
-# DEFAULT_PACKAGES.
-# Keep DYNAMIC_DEF_PKG_CONF in sync with target.mk to reflect the same configs
-DYNAMIC_DEF_PKG_CONF := CONFIG_USE_APK CONFIG_SELINUX CONFIG_SMALL_FLASH CONFIG_SECCOMP
-check-dynamic-def-pkg: FORCE
-	@+DEF_PKG_CONFS=""; \
-	if [ -f $(TOPDIR)/.config ]; then \
-		for config in $(DYNAMIC_DEF_PKG_CONF); do \
-			DEF_PKG_CONFS="$$DEF_PKG_CONFS "$$(grep "$$config"=y $(TOPDIR)/.config); \
-		done; \
-	fi; \
-	[ ! -f tmp/.packagedynamicdefault ] || OLD_DEF_PKG_CONFS=$$(cat tmp/.packagedynamicdefault); \
-	[ "$$DEF_PKG_CONFS" = "$$OLD_DEF_PKG_CONFS" ] || rm -rf tmp/info/.targetinfo*; \
-	mkdir -p tmp && echo "$$DEF_PKG_CONFS" > tmp/.packagedynamicdefault;
-
-prepare-tmpinfo: check-dynamic-def-pkg FORCE
+prepare-tmpinfo: FORCE
 	@+$(MAKE) -r -s $(STAGING_DIR_HOST)/.prereq-build $(PREP_MK)
 	mkdir -p tmp/info feeds
-	[ -e $(TOPDIR)/feeds/base ] || ln -sf $(TOPDIR)/package $(TOPDIR)/feeds/base
+	[ -e $(TOPDIR)/feeds/base ] || ln -sf ../package $(TOPDIR)/feeds/base
 	$(_SINGLE)$(NO_TRACE_MAKE) -j1 -r -s -f include/scan.mk SCAN_TARGET="packageinfo" SCAN_DIR="package" SCAN_NAME="package" SCAN_DEPTH=5 SCAN_EXTRA=""
 	$(_SINGLE)$(NO_TRACE_MAKE) -j1 -r -s -f include/scan.mk SCAN_TARGET="targetinfo" SCAN_DIR="target/linux" SCAN_NAME="target" SCAN_DEPTH=3 SCAN_EXTRA="" SCAN_MAKEOPTS="TARGET_BUILD=1"
 	for type in package target; do \
@@ -216,7 +201,7 @@ else
   DOWNLOAD_DIRS = package/download
 endif
 
-download: .config FORCE $(if $(wildcard $(STAGING_DIR_HOST)/bin/flock),,tools/flock/compile)
+download: .config FORCE $(if $(wildcard $(STAGING_DIR_HOST)/bin/flock),,tools/flock/compile) $(if $(wildcard $(STAGING_DIR_HOST)/bin/zstd),,tools/zstd/compile)
 	@+$(foreach dir,$(DOWNLOAD_DIRS),$(SUBMAKE) $(dir);)
 
 clean dirclean: .config
@@ -276,7 +261,7 @@ help:
 	cat README.md
 
 distclean:
-	rm -rf bin build_dir .ccache .config* dl feeds key-build* logs package/feeds staging_dir tmp
+	rm -rf bin build_dir .ccache .config* dl feeds key-build* logs package/feeds target/linux/feeds staging_dir tmp
 	@$(_SINGLE)$(SUBMAKE) -C scripts/config clean
 
 ifeq ($(findstring v,$(DEBUG)),)

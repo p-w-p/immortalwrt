@@ -55,7 +55,7 @@ define Device/alfa-network_tube-e4g
   DEVICE_VENDOR := ALFA Network
   DEVICE_MODEL := Tube-E4G
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci uboot-envtools uqmi -iwinfo \
-	-kmod-rt2800-soc -wpad-basic-openssl
+	-kmod-rt2800-soc -wpad-openssl
   SUPPORTED_DEVICES += tube-e4g
 endef
 TARGET_DEVICES += alfa-network_tube-e4g
@@ -217,6 +217,15 @@ define Device/comfast_cf-wr800n
 endef
 TARGET_DEVICES += comfast_cf-wr800n
 
+define Device/devolo_rac
+  SOC := mt7620a
+  IMAGE_SIZE := 7872k
+  DEVICE_VENDOR := devolo
+  DEVICE_MODEL := WiFi Repeater ac
+  DEVICE_PACKAGES := kmod-mt76x2 kmod-phy-realtek
+endef
+TARGET_DEVICES += devolo_rac
+
 define Device/dlink_dch-m225
   $(Device/seama)
   SOC := mt7620a
@@ -254,6 +263,7 @@ define Device/dlink_dir-806a-b1
   IMAGES += factory.bin
   IMAGE/factory.bin := append-kernel | append-rootfs | pad-rootfs | check-size | \
 	sign-dlink-ru cef285a2e29e40b2baab31277d44298b
+  DEFAULT := n
 endef
 TARGET_DEVICES += dlink_dir-806a-b1
 
@@ -614,6 +624,18 @@ define Device/hnet_c108
 endef
 TARGET_DEVICES += hnet_c108
 
+define Device/hongdian_h8922-v30
+  SOC := mt7620a
+  IMAGE_SIZE := 15808k
+  DEVICE_VENDOR := Hongdian
+  DEVICE_MODEL := H8922
+  DEVICE_VARIANT := v30
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-usb-net-qmi-wwan kmod-usb-serial-option uqmi uboot-envtools
+  IMAGES += rootfs.bin
+  IMAGE/rootfs.bin := append-rootfs | check-size 10560k
+endef
+TARGET_DEVICES += hongdian_h8922-v30
+
 define Device/humax_e2
   SOC := mt7620a
   IMAGE_SIZE := 7744k
@@ -793,6 +815,7 @@ define Device/linksys_e1700
   DEVICE_VENDOR := Linksys
   DEVICE_MODEL := E1700
   SUPPORTED_DEVICES += e1700
+  DEFAULT := n
 endef
 TARGET_DEVICES += linksys_e1700
 
@@ -841,6 +864,7 @@ define Device/netgear_ex3700
   DEVICE_VENDOR := NETGEAR
   DEVICE_MODEL := EX3700/EX3800
   SUPPORTED_DEVICES += ex3700
+  DEFAULT := n
 endef
 TARGET_DEVICES += netgear_ex3700
 
@@ -853,6 +877,7 @@ define Device/netgear_ex6120
   DEVICE_PACKAGES := kmod-mt76x2
   DEVICE_VENDOR := NETGEAR
   DEVICE_MODEL := EX6120
+  DEFAULT := n
 endef
 TARGET_DEVICES += netgear_ex6120
 
@@ -865,6 +890,7 @@ define Device/netgear_ex6130
   DEVICE_PACKAGES := kmod-mt76x2
   DEVICE_VENDOR := NETGEAR
   DEVICE_MODEL := EX6130
+  DEFAULT := n
 endef
 TARGET_DEVICES += netgear_ex6130
 
@@ -926,6 +952,7 @@ define Device/netgear_wn3100rp-v2
   DEVICE_VENDOR := NETGEAR
   DEVICE_MODEL := WN3100RP
   DEVICE_VARIANT := v2
+  DEFAULT := n
 endef
 TARGET_DEVICES += netgear_wn3100rp-v2
 
@@ -965,6 +992,7 @@ define Device/nexx_wt3020-8m
   DEVICE_VARIANT := 8M
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci
   SUPPORTED_DEVICES += wt3020 wt3020-8M
+  DEFAULT := n
 endef
 TARGET_DEVICES += nexx_wt3020-8m
 
@@ -1129,10 +1157,12 @@ define Device/rostelecom_rt-fl-1
   $(Device/sercomm_cpj)
   DEVICE_MODEL := RT-FL-1
   DEVICE_ALT0_MODEL := RT-FL-1
+ifeq ($(IB),)
   ARTIFACT/initramfs-factory.img := \
 	append-image-stage initramfs-kernel.bin | check-size | \
 	sercomm-factory-cpj | gzip | sercomm-payload | \
 	sercomm-pid-setbit 0x11 | sercomm-crypto
+endif
 endef
 TARGET_DEVICES += rostelecom_rt-fl-1
 
@@ -1140,9 +1170,11 @@ define Device/rostelecom_s1010
   $(Device/sercomm_cpj)
   DEVICE_MODEL := S1010
   DEVICE_ALT0_MODEL := S1010.RT
+ifeq ($(IB),)
   ARTIFACT/initramfs-factory.img := \
 	append-image-stage initramfs-kernel.bin | check-size | \
 	sercomm-factory-cpj | gzip | sercomm-payload | sercomm-crypto
+endif
 endef
 TARGET_DEVICES += rostelecom_s1010
 
@@ -1176,6 +1208,7 @@ define Device/sitecom_wlr-4100-v1-002
   DEVICE_MODEL := WLR-4100
   DEVICE_VARIANT := v1 002
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci uboot-envtools
+  DEFAULT := n
 endef
 TARGET_DEVICES += sitecom_wlr-4100-v1-002
 
@@ -1250,6 +1283,7 @@ define Device/tplink_archer-c5-v4
   DEVICE_VARIANT := v4
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-usb-ledtrig-usbport \
 	kmod-mt76x2 kmod-switch-rtl8367b
+  DEFAULT := n
 endef
 TARGET_DEVICES += tplink_archer-c5-v4
 
@@ -1302,7 +1336,7 @@ endef
 TARGET_DEVICES += tplink_ec220-g5-v2
 
 define Device/tplink_re200-v1
-  $(Device/tplink-v1)
+  $(Device/tplink-v1-okli)
   SOC := mt7620a
   DEVICE_MODEL := RE200
   DEVICE_VARIANT := v1
@@ -1314,7 +1348,7 @@ endef
 TARGET_DEVICES += tplink_re200-v1
 
 define Device/tplink_re210-v1
-  $(Device/tplink-v1)
+  $(Device/tplink-v1-okli)
   SOC := mt7620a
   DEVICE_MODEL := RE210
   DEVICE_VARIANT := v1
@@ -1333,6 +1367,16 @@ define Device/trendnet_tew-810dr
   IMAGE_SIZE := 6720k
 endef
 TARGET_DEVICES += trendnet_tew-810dr
+
+define Device/trendnet_tha103ac
+  SOC := mt7620a
+  DEVICE_PACKAGES := kmod-mt76x0e rssileds
+  DEVICE_VENDOR := TRENDnet
+  DEVICE_MODEL := THA-103AC
+  IMAGE_SIZE := 7872k
+  SUPPORTED_DEVICES += mt7620a_mt7610e
+endef
+TARGET_DEVICES += trendnet_tha103ac
 
 define Device/vonets_var11n-300
   SOC := mt7620n
@@ -1592,6 +1636,7 @@ define Device/zyxel_keenetic-lite-iii-a
   IMAGES += factory.bin
   IMAGE/factory.bin := $$(sysupgrade_bin) | pad-to 64k | check-size | \
 		zyimage -d 2102018 -v "ZyXEL Keenetic Lite III"
+  DEFAULT := n
 endef
 TARGET_DEVICES += zyxel_keenetic-lite-iii-a
 
@@ -1605,6 +1650,7 @@ define Device/zyxel_keenetic-omni
   IMAGE/factory.bin := $$(sysupgrade_bin) | pad-to 64k | check-size | \
 	zyimage -d 4882 -v "ZyXEL Keenetic Omni"
   SUPPORTED_DEVICES += kn_rc
+  DEFAULT := n
 endef
 TARGET_DEVICES += zyxel_keenetic-omni
 
@@ -1618,6 +1664,7 @@ define Device/zyxel_keenetic-omni-ii
   IMAGE/factory.bin := $$(sysupgrade_bin) | pad-to 64k | check-size | \
 	zyimage -d 2102034 -v "ZyXEL Keenetic Omni II"
   SUPPORTED_DEVICES += kn_rf
+  DEFAULT := n
 endef
 TARGET_DEVICES += zyxel_keenetic-omni-ii
 

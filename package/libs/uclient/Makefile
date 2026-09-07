@@ -5,9 +5,9 @@ PKG_RELEASE=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL=$(PROJECT_GIT)/project/uclient.git
-PKG_MIRROR_HASH:=0a0ea0752d534db87f2a13342d1b1b33fb94e43b934bdd015f96f19c635aa08c
-PKG_SOURCE_DATE:=2024-04-19
-PKG_SOURCE_VERSION:=e8780fa7792aaa2d68af21c0df91cd9c05e1f73a
+PKG_MIRROR_HASH:=35c51545ee092b816249799d283838ffba904292636c495818d864c56b554fe0
+PKG_SOURCE_DATE:=2026-06-07
+PKG_SOURCE_VERSION:=daad21fa2c17cae54d37149bf27bb3dd78e50a3f
 CMAKE_INSTALL:=1
 
 PKG_BUILD_DEPENDS:=ustream-ssl
@@ -34,7 +34,8 @@ define Package/uclient-fetch
   CATEGORY:=Network
   TITLE:=Tiny wget replacement using libuclient
   ALTERNATIVES:=200:/usr/bin/wget:/bin/uclient-fetch
-  PROVIDES:=wget
+  DEFAULT_VARIANT:=1
+  PROVIDES:=@wget-any
   DEPENDS:=+libuclient
 endef
 

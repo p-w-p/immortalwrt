@@ -8,7 +8,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_VERSION:=2020.04
-PKG_RELEASE:=10
+PKG_RELEASE:=11
 
 PKG_HASH:=fe732aaf037d9cc3c0909bad8362af366ae964bbdac6913a34081ff4ad565372
 
@@ -23,6 +23,11 @@ endef
 define U-Boot/dns320l
   NAME:=D-Link DNS-320L
   BUILD_DEVICES:=dlink_dns320l
+endef
+
+define U-Boot/dns325
+  NAME:=D-Link DNS-325 A1
+  BUILD_DEVICES:=dlink_dns-325-a1
 endef
 
 define U-Boot/dockstar
@@ -112,6 +117,7 @@ endef
 
 UBOOT_TARGETS := \
 	dns320l \
+	dns325 \
 	dockstar dockstar_second_stage \
 	goflexhome \
 	ib62x0 ib62x0_second_stage \

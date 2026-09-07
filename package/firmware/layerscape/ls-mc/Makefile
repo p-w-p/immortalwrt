@@ -8,13 +8,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ls-mc
-PKG_VERSION:=10.38.0
+PKG_VERSION:=10.40.0
 PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/NXP/qoriq-mc-binary.git
-PKG_SOURCE_VERSION:=mc_release_10.38.0
-PKG_MIRROR_HASH:=4bd0eab4b600d6dee67b4c5b32624a92fd84e6c93f506e46a4fe52217e2d1593
+PKG_SOURCE_VERSION:=mc_release_10.40.0
+PKG_MIRROR_HASH:=d4359637da641108f5c8b39c1db43d9dda4d2f8e64d4a4c89ce0301ebd12b3b1
 
 PKG_FLAGS:=nonshared
 
@@ -25,6 +25,8 @@ define Package/layerscape-mc
   CATEGORY:=Firmware
   TITLE:=NXP MC firmware
   DEPENDS:=@TARGET_layerscape
+  DEFAULT:=y if TARGET_layerscape_armv8_64b
+  HIDDEN:=1
 endef
 
 define Build/Compile

@@ -1005,7 +1005,10 @@ static int bcm6368_enetsw_probe(struct platform_device *pdev)
 	priv->tx_ring_size = ENETSW_DEF_TX_DESC;
 	priv->copybreak = ENETSW_DEF_CPY_BREAK;
 
-	of_get_mac_address(node, dev_addr);
+	ret = of_get_mac_address(node, dev_addr);
+	if (ret == -EPROBE_DEFER)
+		return ret;
+
 	if (is_valid_ether_addr(dev_addr)) {
 		dev_addr_set(ndev, dev_addr);
 		dev_info(dev, "mtd mac %pM\n", dev_addr);
@@ -1100,7 +1103,7 @@ out_disable_clk:
 	return ret;
 }
 
-static int bcm6368_enetsw_remove(struct platform_device *pdev)
+static void bcm6368_enetsw_remove(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
 	struct net_device *ndev = platform_get_drvdata(pdev);
@@ -1118,8 +1121,6 @@ static int bcm6368_enetsw_remove(struct platform_device *pdev)
 
 	for (i = 0; i < priv->num_clocks; i++)
 		clk_disable_unprepare(priv->clock[i]);
-
-	return 0;
 }
 
 static const struct of_device_id bcm6368_enetsw_of_match[] = {
@@ -1135,7 +1136,7 @@ MODULE_DEVICE_TABLE(of, bcm6368_enetsw_of_match);
 static struct platform_driver bcm6368_enetsw_driver = {
 	.driver = {
 		.name = "bcm6368-enetsw",
-		.of_match_table = of_match_ptr(bcm6368_enetsw_of_match),
+		.of_match_table = bcm6368_enetsw_of_match,
 	},
 	.probe	= bcm6368_enetsw_probe,
 	.remove	= bcm6368_enetsw_remove,

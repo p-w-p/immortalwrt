@@ -5,11 +5,11 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=dtc
-PKG_VERSION:=1.7.0
-PKG_RELEASE:=3
+PKG_VERSION:=1.8.1
+PKG_RELEASE:=1
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
-PKG_HASH:=29edce3d302a15563d8663198bbc398c5a0554765c83830d0d4c0409d21a16c4
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+PKG_HASH:=454e5cce748ce957c91e7f45e66da2cff5100ddb52155d7a909c43cbeaf1bcb0
 PKG_SOURCE_URL:=@KERNEL/software/utils/dtc
 
 PKG_MAINTAINER:=Yousong Zhou <yszhou4tech@gmail.com>
@@ -88,11 +88,12 @@ define Package/libfdt/install
 endef
 
 MESON_ARGS += \
+	-Dtests=false \
 	-Dtools=true \
 	-Dyaml=disabled \
 	-Dvalgrind=disabled \
 	-Dpython=disabled \
-	-Dstatic-build=$(if $(CONFIG_DTC_STATIC_BUILD),true,false)
+	$(if $(CONFIG_DTC_STATIC_BUILD),--prefer-static)
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/usr/lib

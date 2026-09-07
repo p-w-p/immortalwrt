@@ -11,6 +11,7 @@ use strict;
 use warnings;
 use File::Basename;
 use File::Copy;
+use File::Path;
 use Text::ParseWords;
 use JSON::PP;
 
@@ -123,12 +124,12 @@ sub download_cmd {
 	my $filename = shift;
 
 	if ($download_tool eq "curl") {
-		return (qw(curl -f --connect-timeout 20 --retry 5 --location),
+		return (qw(curl -f --connect-timeout 5 --retry 3 --location),
 			$check_certificate ? () : '--insecure',
 			shellwords($ENV{CURL_OPTIONS} || ''),
 			$url);
 	} elsif ($download_tool eq "wget") {
-		return (qw(wget --tries=5 --timeout=20 --output-document=-),
+		return (qw(wget --tries=3 --timeout=5 --output-document=-),
 			$check_certificate ? () : '--no-check-certificate',
 			shellwords($ENV{WGET_OPTIONS} || ''),
 			$url);
@@ -162,6 +163,7 @@ sub download
 	my $mirror = shift;
 	my $download_filename = shift;
 	my @additional_mirrors = @_;
+	my @cmd;
 
 	$mirror =~ s!/$!!;
 
@@ -173,7 +175,7 @@ sub download
 		}
 
 		if (! -d "$target") {
-			system("mkdir", "-p", "$target/");
+			make_path($target);
 		}
 
 		if (! open TMPDLS, "find $mirror -follow -name $filename 2>/dev/null |") {
@@ -208,7 +210,11 @@ sub download
 			}
 		};
 	} else {
-		my @cmd = download_cmd("$mirror/$download_filename", $download_filename, @additional_mirrors);
+		if ($mirror =~ /a=snapshot/) {
+			@cmd = download_cmd("$mirror", $download_filename, @additional_mirrors);
+		} else {
+			@cmd = download_cmd("$mirror/$download_filename", $download_filename, @additional_mirrors);
+		}
 		print STDERR "+ ".join(" ",@cmd)."\n";
 		open(FETCH_FD, '-|', @cmd) or die "Cannot launch aria2c, curl or wget.\n";
 		$hash_cmd and do {
@@ -244,7 +250,7 @@ sub download
 	};
 
 	unlink "$target/$filename";
-	system("mv", "$target/$filename.dl", "$target/$filename");
+	move("$target/$filename.dl", "$target/$filename");
 	cleanup();
 }
 
@@ -324,14 +330,23 @@ if (-f "$target/$filename") {
 
 $download_tool = select_tool();
 
+my $mirror = shift @mirrors;
+
+# Try snapshot original source last
+if ($mirror =~ /snapshot/) {
+	push @mirrors, $mirror;
+	$mirror = shift @mirrors;
+}
+
 while (!-f "$target/$filename") {
-	my $mirror = shift @mirrors;
 	$mirror or die "No more mirrors to try - giving up.\n";
 
 	download($mirror, $url_filename, @mirrors);
 	if (!-f "$target/$filename" && $url_filename ne $filename) {
 		download($mirror, $filename, @mirrors);
 	}
+
+	$mirror = shift @mirrors;
 }
 
 $SIG{INT} = \&cleanup;

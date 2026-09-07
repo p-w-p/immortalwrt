@@ -20,7 +20,7 @@ opkg_package_files = $(wildcard \
 
 apk_package_files = $(wildcard \
 	$(foreach dir,$(PACKAGE_SUBDIRS), \
-	  $(foreach pkg,$(1), $(dir)/$(pkg)_*.apk)))
+	  $(foreach pkg,$(1), $(dir)/$(pkg)*.apk)))
 
 # 1: package name
 define FeedPackageDir
@@ -37,7 +37,7 @@ define FeedSourcesAppendOPKG
   echo 'src/gz %d_core %U/targets/%S/packages'; \
   $(strip $(if $(CONFIG_PER_FEED_REPO), \
 	echo 'src/gz %d_base %U/packages/%A/base'; \
-	$(if $(filter %SNAPSHOT-y,$(VERSION_NUMBER)-$(CONFIG_BUILDBOT)), \
+	$(if $(CONFIG_BUILDBOT), \
 		echo 'src/gz %d_kmods %U/targets/%S/kmods/$(LINUX_VERSION)-$(LINUX_RELEASE)-$(LINUX_VERMAGIC)';) \
 	$(foreach feed,$(FEEDS_AVAILABLE), \
 		$(if $(CONFIG_FEED_$(feed)), \
@@ -48,10 +48,12 @@ endef
 # 1: destination file
 define FeedSourcesAppendAPK
 ( \
+  echo '# This file is auto-generated and build-specific, any changes will be intentionally lost in sysupgrade.'; \
+  echo '# Add your custom feeds to /etc/apk/repositories.d/customfeeds.list'; \
   echo '%U/targets/%S/packages/packages.adb'; \
   $(strip $(if $(CONFIG_PER_FEED_REPO), \
 	echo '%U/packages/%A/base/packages.adb'; \
-	$(if $(filter %SNAPSHOT-y,$(VERSION_NUMBER)-$(CONFIG_BUILDBOT)), \
+	$(if $(CONFIG_BUILDBOT), \
 		echo '%U/targets/%S/kmods/$(LINUX_VERSION)-$(LINUX_RELEASE)-$(LINUX_VERMAGIC)/packages.adb';) \
 	$(foreach feed,$(FEEDS_AVAILABLE), \
 		$(if $(CONFIG_FEED_$(feed)), \

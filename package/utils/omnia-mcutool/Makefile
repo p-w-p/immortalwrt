@@ -8,12 +8,14 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=omnia-mcutool
-PKG_VERSION:=0.3-rc3
+PKG_VERSION_REAL:=0.3-rc4
 PKG_RELEASE:=1
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-PKG_SOURCE_URL:=https://gitlab.nic.cz/turris/$(PKG_NAME)/-/archive/$(PKG_VERSION)/
-PKG_HASH:=80bc6a01ab86d51ebfdbddf77d74eead999a9bf7dbd08ca1fd4e8e1910eaf192
+PKG_SOURCE_PROTO:=git
+PKG_SOURCE_URL=https://gitlab.nic.cz/turris/$(PKG_NAME)
+PKG_SOURCE_DATE:=2026-06-01
+PKG_SOURCE_VERSION:=195391be28d243e047ac0b1464c79c8cf0ee3125
+PKG_MIRROR_HASH:=488aacca75f0a9bc0020098f13579bcf55179e91f6a199836c079152e133678a
 
 PKG_MAINTAINER:=Marek Mojik <marek.mojik@nic.cz>
 PKG_LICENSE:=GPL-2.0-or-later
@@ -25,7 +27,7 @@ define Package/omnia-mcutool
   CATEGORY:=Utilities
   URL:=https://gitlab.nic.cz/turris/$(PKG_NAME)
   TITLE:=CZ.NIC Turris Omnia MCU utility
-  DEPENDS:=+libopenssl +omnia-mcu-firmware @TARGET_mvebu_cortexa9_DEVICE_cznic_turris-omnia
+  DEPENDS:=+libopenssl +omnia-mcu-firmware
 endef
 
 define Package/omnia-mcutool/description
@@ -41,7 +43,7 @@ define Build/Compile
 		CC="$(TARGET_CC)" \
 		CFLAGS="$(TARGET_CFLAGS) -Wall" \
 		LDFLAGS="$(TARGET_LDFLAGS)" \
-		MCUTOOL_VERSION="$(PKG_VERSION)"
+		MCUTOOL_VERSION="$(PKG_VERSION_REAL)"
 endef
 
 define Package/omnia-mcutool/install

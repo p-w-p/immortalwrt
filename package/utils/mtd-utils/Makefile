@@ -8,17 +8,19 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=mtd-utils
-PKG_VERSION:=2.2.0
+PKG_VERSION:=2.3.1
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:=https://infraroot.at/pub/mtd/
-PKG_HASH:=250d082f67375ca8451b5fcfc9a23a53ced3ebebd8312c288daf2507bbab1324
+PKG_HASH:=03d9dc58ad10ea3549d9528f6b17a44d8944e18e96c0f31474f9f977078b83dc
 
 PKG_INSTALL:=1
 
 PKG_FLAGS:=nonshared
 PKG_BUILD_FLAGS:=gc-sections
+
+PKG_FIXUP:=autoreconf
 
 PKG_BUILD_DEPENDS:=util-linux
 
@@ -59,18 +61,27 @@ MAKE_FLAGS += LDLIBS+="$(LIBGCC_S)"
 
 CONFIGURE_ARGS += \
 	--enable-tests \
+	--disable-unit-tests \
 	--without-crypto \
 	--without-xattr \
 	--without-zstd \
 	--without-lzo \
 	--without-zlib
 
+define Package/ubi-utils/conffiles
+/etc/config/ubihealthd
+endef
+
 define Package/ubi-utils/install
 	$(INSTALL_DIR) $(1)/usr/sbin
 	$(INSTALL_BIN) \
-		$(PKG_INSTALL_DIR)/usr/sbin/{ubiattach,ubicrc32,ubiblock,ubidetach,ubiformat,ubimkvol} $(1)/usr/sbin/
+		$(PKG_INSTALL_DIR)/usr/sbin/{ubiattach,ubicrc32,ubiblock,ubidetach,ubiformat,ubihealthd} $(1)/usr/sbin/
 	$(INSTALL_BIN) \
-		$(PKG_INSTALL_DIR)/usr/sbin/{ubinfo,ubinize,ubirename,ubirmvol,ubirsvol,ubiupdatevol} $(1)/usr/sbin/
+		$(PKG_INSTALL_DIR)/usr/sbin/{ubimkvol,ubinfo,ubinize,ubirename,ubirmvol,ubirsvol,ubiupdatevol} $(1)/usr/sbin/
+	$(INSTALL_DIR) $(1)/etc/init.d
+	$(INSTALL_BIN) ./files/ubihealthd.init $(1)/etc/init.d/ubihealthd
+	$(INSTALL_DIR) $(1)/etc/uci-defaults
+	$(INSTALL_DATA) ./files/ubihealthd.defaults $(1)/etc/uci-defaults/ubihealthd
 endef
 
 define Package/nand-utils/install
